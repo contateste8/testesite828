@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Buscar Usuário Roblox</title>
+</head>
+<body>
+  <h2>Digite o nome do jogador Roblox:</h2>
+  <input type="text" id="username" placeholder="Ex: Builderman">
+  <button onclick="buscarUsuario()">Buscar</button>
+
+  <div id="resultado" style="margin-top: 20px;"></div>
+
+  <script>
+    async function buscarUsuario() {
+      const nome = document.getElementById("username").value;
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = "Buscando...";
+
+      try {
+        // Buscar o ID do usuário a partir do nome
+        const respostaID = await fetch(`https://users.roblox.com/v1/usernames/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usernames: [nome] })
+        });
+
+        const dadosID = await respostaID.json();
+        if (!dadosID.data || dadosID.data.length === 0) {
+          resultado.innerHTML = "Usuário não encontrado.";
+          return;
+        }
+
+        const usuario = dadosID.data[0];
+
+        // Buscar informações do usuário
+        const respostaInfo = await fetch(`https://users.roblox.com/v1/users/${usuario.id}`);
+        const dadosInfo = await respostaInfo.json();
+
+        // Mostrar informações
+        resultado.innerHTML = `
+          <p><strong>Nome:</strong> ${dadosInfo.name}</p>
+          <p><strong>Descrição:</strong> ${dadosInfo.description || 'Nenhuma descrição'}</p>
+          <p><strong>ID:</strong> ${dadosInfo.id}</p>
+          <p><strong>Data de criação:</strong> ${new Date(dadosInfo.created).toLocaleDateString()}</p>
+          <img src="https://www.roblox.com/headshot-thumbnail/image?userId=${usuario.id}&width=150&height=150&format=png" alt="Avatar">
+        `;
+      } catch (error) {
+        resultado.innerHTML = "Erro ao buscar informações.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
